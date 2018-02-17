@@ -5,6 +5,11 @@ import os.path
 from workflow import Workflow
 
 
+def _strip_string(string):
+    for stripped in ['{', '}']:
+        string = string.replace(stripped, "")
+    return string
+
 def main(wf):
     import bibtexparser
 
@@ -24,12 +29,7 @@ def main(wf):
         query = wf.args[0]
     
     def filter_entry(entry):
-        return u"{} {} {} {}".format(
-            entry.get("ID"),
-            entry.get("title"),
-            entry.get("booktitle"),
-            entry.get("chapter")
-        )
+        return u"{} {}".format(entry["ID"], _strip_string(entry["title"]))
 
     if query:
         bibliography = wf.filter(query, bibliography, filter_entry)
@@ -37,10 +37,10 @@ def main(wf):
     for entry in bibliography:
         try:
             wf.add_item(
-                title=entry["ID"],
-                subtitle=entry["title"],
-                modifier_subtitles={"alt": entry["author"]},
-                arg=entry["ID"],
+                title=_strip_string(entry["title"]),
+                subtitle=_strip_string(entry["author"]),
+                modifier_subtitles={"alt": "@" + entry["ID"]},
+                arg= "[@" + entry["ID"] + "]",
                 valid=True
             )
         except:
